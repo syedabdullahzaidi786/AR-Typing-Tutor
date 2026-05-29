@@ -1,0 +1,26 @@
+{
+  "name": "AR Typing Tutor",
+  "short_name": "AR Typing",
+  "description": "Practice typing in English, Urdu, Arabic, and Sindhi. Get certified with our professional typing tests.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#7c3aed",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["education", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

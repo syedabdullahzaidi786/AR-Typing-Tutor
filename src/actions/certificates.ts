@@ -39,28 +39,38 @@ export async function approveCertificateRequest(requestId: string) {
 
   const request = await prisma.certificateRequest.findUnique({
     where: { id: requestId },
-    include: { test: true },
+    include: { test: true, certificate: true },
   });
 
   if (!request) return { error: "Request not found" };
-  if (request.status !== "PENDING") return { error: "Already processed" };
 
-  const certNumber = generateCertificateNumber();
-
-  await prisma.$transaction([
-    prisma.certificateRequest.update({
+  let certNumber: string;
+  
+  if (request.certificate) {
+    // Already has a certificate, just update request status
+    certNumber = request.certificate.certificateNumber;
+    await prisma.certificateRequest.update({
       where: { id: requestId },
       data: { status: "APPROVED", approvedById: session.user.id },
-    }),
-    prisma.certificate.create({
-      data: {
-        certificateNumber: certNumber,
-        userId: request.userId,
-        testId: request.testId,
-        requestId: request.id,
-      },
-    }),
-  ]);
+    });
+  } else {
+    // Create new certificate
+    certNumber = generateCertificateNumber();
+    await prisma.$transaction([
+      prisma.certificateRequest.update({
+        where: { id: requestId },
+        data: { status: "APPROVED", approvedById: session.user.id },
+      }),
+      prisma.certificate.create({
+        data: {
+          certificateNumber: certNumber,
+          userId: request.userId,
+          testId: request.testId,
+          requestId: request.id,
+        },
+      }),
+    ]);
+  }
 
   revalidatePath("/admin/certificates");
   revalidatePath("/certificates");
@@ -71,10 +81,21 @@ export async function rejectCertificateRequest(requestId: string) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") return { error: "Unauthorized" };
 
-  await prisma.certificateRequest.update({
+  // Check if there's an existing certificate and delete it if needed
+  const request = await prisma.certificateRequest.findUnique({
     where: { id: requestId },
-    data: { status: "REJECTED", approvedById: session.user.id },
+    include: { certificate: true },
   });
+
+  if (!request) return { error: "Request not found" };
+
+  await prisma.$transaction([
+    prisma.certificateRequest.update({
+      where: { id: requestId },
+      data: { status: "REJECTED", approvedById: session.user.id },
+    }),
+    // Optional: Delete certificate if we want, but maybe keep it for records? User asked for multiple approve/reject, so let's not delete
+  ]);
 
   revalidatePath("/admin/certificates");
   revalidatePath("/certificates");
@@ -87,6 +108,7 @@ export async function getCertificateByNumber(certNumber: string) {
     include: {
       user: { select: { name: true } },
       test: true,
+      request: true,
     },
   });
 }

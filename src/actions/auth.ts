@@ -29,16 +29,28 @@ export async function registerUser(data: z.infer<typeof registerSchema>) {
 }
 
 export async function loginUser(email: string, password: string) {
-  try {
-    await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    return { success: true };
-  } catch {
-    return { error: "Invalid credentials" };
+  // First check user exists and status
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    return { error: "Invalid email or password" };
   }
+  if (user.isBanned) {
+    return { error: "Your account has been banned. Please contact support." };
+  }
+
+  const isValid = await bcrypt.compare(password, user.password);
+  if (!isValid) {
+    return { error: "Invalid email or password" };
+  }
+
+  // Then sign in
+  await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+  });
+  
+  return { success: true, role: user.role };
 }
 
 export async function logoutUser() {

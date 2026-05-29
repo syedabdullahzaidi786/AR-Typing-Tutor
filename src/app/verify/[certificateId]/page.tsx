@@ -12,18 +12,21 @@ export default async function VerifyPage({ params }: VerifyPageProps) {
   const { certificateId } = await params;
   const certificate = await getCertificateByNumber(certificateId);
 
-  if (!certificate) {
+  if (!certificate || certificate.request?.status === "REJECTED") {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center mx-auto mb-6">
             <XCircle className="w-10 h-10 text-red-400" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-3">Certificate Not Found</h1>
-          <p className="text-gray-400 mb-6">
+          <h1 className="text-2xl font-bold text-white mb-3">Invalid Certificate Number</h1>
+          <p className="text-gray-400 mb-4">
             The certificate{" "}
-            <span className="text-red-400 font-mono">{certificateId}</span> does
-            not exist or may have been revoked.
+            <span className="text-red-400 font-mono">{certificateId}</span> is
+            invalid, rejected, or may have been revoked.
+          </p>
+          <p className="text-yellow-400 text-sm bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+            If you believe this is a mistake or there's a bug in the system, please contact the system administrator immediately.
           </p>
           <Link
             href="/"

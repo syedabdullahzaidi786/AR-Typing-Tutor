@@ -2,9 +2,10 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { paragraphSchema, testConfigSchema } from "@/lib/validations";
+import { paragraphSchema, testConfigSchema, registerSchema } from "@/lib/validations";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
 
 async function requireAdmin() {
   const session = await auth();
@@ -148,5 +149,51 @@ export async function seedParagraphs() {
     }
   }
   revalidatePath("/admin/paragraphs");
+  return { success: true };
+}
+
+export async function addUser(data: z.infer<typeof registerSchema>) {
+  await requireAdmin();
+  const parsed = registerSchema.safeParse(data);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const { name, email, password } = parsed.data;
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return { error: "Email already registered" };
+
+  const hashed = await bcrypt.hash(password, 12);
+  await prisma.user.create({ data: { name, email, password: hashed } });
+
+  revalidatePath("/admin/users");
+  return { success: true };
+}
+
+export async function updateAdminProfile(data: {
+  name?: string;
+  email?: string;
+  password?: string;
+}) {
+  const session = await requireAdmin();
+  const updateData: any = {};
+
+  if (data.name) updateData.name = data.name;
+  if (data.email) {
+    const existing = await prisma.user.findFirst({
+      where: { email: data.email, NOT: { id: session.user.id } },
+    });
+    if (existing) return { error: "Email already in use" };
+    updateData.email = data.email;
+  }
+  if (data.password) {
+    updateData.password = await bcrypt.hash(data.password, 12);
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: updateData,
+  });
+
+  revalidatePath("/admin");
   return { success: true };
 }

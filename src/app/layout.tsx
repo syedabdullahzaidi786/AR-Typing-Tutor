@@ -3,6 +3,7 @@ import "./globals.css";
 import { auth } from "@/lib/auth";
 import Navbar from "@/components/layout/Navbar";
 import PWARegistration from "@/components/layout/PWARegistration";
+import InstallPWA from "@/components/layout/InstallPWA";
 import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
@@ -47,6 +48,7 @@ export default async function RootLayout({
       <body className="bg-gray-950 text-gray-100 antialiased">
         <SessionProvider>
           <PWARegistration />
+          <InstallPWA />
           <Navbar
             user={
               session?.user

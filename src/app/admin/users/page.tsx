@@ -5,6 +5,7 @@ import { Users } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import AdminUserActions from "./AdminUserActions";
+import AddUserForm from "./AddUserForm";
 
 export default async function AdminUsersPage() {
   const session = await auth();
@@ -23,6 +24,8 @@ export default async function AdminUsersPage() {
           <p className="text-gray-400 text-sm">{users.length} total users</p>
         </div>
       </div>
+
+      <AddUserForm />
 
       <div className="bg-gray-900/60 border border-gray-800 rounded-2xl overflow-hidden">
         <div className="grid grid-cols-12 gap-4 px-6 py-3 border-b border-gray-800 text-xs font-medium text-gray-500 uppercase tracking-wider">

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getAdminStats } from "@/actions/admin";
 import { Settings, Users, FileText, Award, Clock, BarChart3 } from "lucide-react";
 import Link from "next/link";
+import AdminProfileEdit from "./AdminProfileEdit";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -122,6 +123,14 @@ export default async function AdminPage() {
             Update Pass Criteria
           </Link>
         </div>
+      </div>
+
+      {/* Profile Edit */}
+      <div className="mt-8">
+        <AdminProfileEdit
+          currentName={session.user.name}
+          currentEmail={session.user.email}
+        />
       </div>
     </div>
   );

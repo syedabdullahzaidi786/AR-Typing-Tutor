@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -11,6 +10,7 @@ import { Keyboard, Mail, Lock } from "lucide-react";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import { loginSchema, LoginInput } from "@/lib/validations";
+import { loginUser } from "@/actions/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,20 +27,20 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
+      const result = await loginUser(data.email, data.password);
 
       if (result?.error) {
-        setError("Invalid email or password");
+        setError(result.error);
       } else {
-        router.push("/dashboard");
+        if (result.role === "ADMIN") {
+          router.push("/admin");
+        } else {
+          router.push("/dashboard");
+        }
         router.refresh();
       }
     } catch {
-      setError("Something went wrong");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

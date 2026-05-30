@@ -66,6 +66,7 @@ export default async function AdminUsersPage() {
                 isBanned={user.isBanned}
                 role={user.role}
                 currentUserId={session.user.id}
+                userName={user.name}
               />
             </div>
           </div>

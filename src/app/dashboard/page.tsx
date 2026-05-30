@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { LayoutDashboard, Trophy, Award, Target, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Trophy, Award, Target, TrendingUp, User } from "lucide-react";
 import { formatDate, getLanguageLabel, getStatusColor } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import Link from "next/link";
+import PasswordChangeForm from "./PasswordChangeForm";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -190,6 +191,27 @@ export default async function DashboardPage() {
             {action.label}
           </Link>
         ))}
+      </div>
+
+      {/* Profile Section */}
+      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+        <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <User className="w-5 h-5 text-violet-400" />
+            <h2 className="font-semibold text-white">Your Profile</h2>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Full Name</p>
+              <p className="text-white text-sm font-medium">{session.user.name}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">Email Address</p>
+              <p className="text-white text-sm font-medium">{session.user.email}</p>
+            </div>
+          </div>
+        </div>
+        <PasswordChangeForm />
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validations";
-import { signIn, signOut } from "@/lib/auth";
+import { signIn, signOut, auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -55,4 +55,23 @@ export async function loginUser(email: string, password: string) {
 
 export async function logoutUser() {
   await signOut({ redirect: false });
+}
+
+export async function updateUserPassword(newPassword: string) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  if (newPassword.length < 6) {
+    return { error: "New password must be at least 6 characters" };
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { password: hashedPassword },
+  });
+
+  return { success: true };
 }

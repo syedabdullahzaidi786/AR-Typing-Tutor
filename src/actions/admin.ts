@@ -197,3 +197,20 @@ export async function updateAdminProfile(data: {
   revalidatePath("/admin");
   return { success: true };
 }
+
+export async function resetUserPassword(userId: string, newPassword: string) {
+  await requireAdmin();
+  
+  if (newPassword.length < 6) {
+    return { error: "Password must be at least 6 characters" };
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+
+  revalidatePath("/admin/users");
+  return { success: true };
+}
